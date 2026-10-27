@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>道德經 填詞試煉</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-paper: #f4f1ea;
+            --text-dark: #3e362e;
+            --text-accent: #5c5042;
+            --border-normal: #8b7d6b;
+            --correct-bg: #ecfdf5;
+            --correct-border: #10b981;
+            --correct-text: #065f46;
+            --incorrect-bg: #fef2f2;
+            --incorrect-border: #ef4444;
+            --incorrect-text: #991b1b;
+        }
+
+        body {
+            background-color: var(--bg-paper);
+            color: var(--text-dark);
+            font-family: 'Kaiti TC', 'TW-Kai', 'BiauKai', '楷體', 'Noto Serif TC', serif;
+            /* 宣紙紋理質感 */
+            background-image: radial-gradient(#e5dfd3 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        .glass-panel {
+            background: rgba(250, 248, 245, 0.95);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2dcd0;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .title-stamp {
+            display: inline-block;
+            background-color: #991b1b;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            vertical-align: middle;
+            margin-right: 12px;
+            letter-spacing: 3px;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
+        }
+
+        .verse {
+            line-height: 3.5; /* 加大行距以容納下方的錯誤提示 */
+            font-size: 1.35rem;
+            letter-spacing: 0.08em;
+            text-align: justify;
+            word-break: break-all;
+        }
+
+        .blank-container {
+            position: relative;
+            display: inline-block;
+            margin: 0 4px;
+            vertical-align: baseline;
+        }
+
+        .blank-input {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.6);
+            border: none;
+            border-bottom: 2px solid var(--border-normal);
+            border-radius: 4px 4px 0 0;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            font-size: inherit;
+            font-family: inherit;
+            padding: 2px 4px;
+            outline: none;
+            box-shadow: inset 0 -2px 0px rgba(0,0,0,0.02);
+        }
+
+        .blank-input:focus {
+            background: #fff;
+            border-bottom-color: #3e362e;
+            box-shadow: inset 0 -3px 0px rgba(62, 54, 46, 0.2);
+        }
+
+        .blank-input:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .input-correct {
+            background-color: var(--correct-bg) !important;
+            border-bottom-color: var(--correct-border) !important;
+            color: var(--correct-text) !important;
+        }
+
+        .input-wrong {
+            background-color: var(--incorrect-bg) !important;
+            border-bottom-color: var(--incorrect-border) !important;
+            color: var(--incorrect-text) !important;
+        }
+
+        .correct-ans-tag {
+            position: absolute;
+            left: 50%;
+            bottom: -2.2rem;
+            transform: translateX(-50%);
+            background-color: #dc2626;
+            color: white;
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+            pointer-events: none;
+            z-index: 10;
+            font-family: sans-serif; /* 提示字體使用黑體較清晰 */
+            letter-spacing: 1px;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .correct-ans-tag::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 4px 5px 4px;
+            border-style: solid;
+            border-color: transparent transparent #dc2626 transparent;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: translate(-50%, 10px) scale(0.9); }
+            100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        }
+
+        .btn-primary {
+            background: var(--text-accent);
+            color: var(--bg-paper);
+            border: 2px solid var(--text-accent);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4a4035;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(92, 80, 66, 0.25);
+        }
+        
+        .btn-primary:disabled {
+            background: #a39a8f;
+            border-color: #a39a8f;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-submit {
+            background: transparent;
+            color: #10b981;
+            border: 2px solid #10b981;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-submit:disabled {
+            border-color: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .verse { font-size: 1.15rem; line-height: 3; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative pb-24 text-gray-800">
+
+    <!-- Header Section -->
+    <header class="py-10 px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-black mb-3 text-[#3e362e] tracking-widest flex items-center justify-center">
+            <span class="title-stamp">老子</span>道德經 填詞試煉
+        </h1>
+        <p class="text-[#5c5042] text-lg mt-2 opacity-80 tracking-wide mb-8">第 2、3、7、10、15、16 回</p>
+        <button onclick="getRandomChapter()" class="btn-primary px-8 py-3 rounded-full font-bold text-xl focus:outline-none">
+            ✨ 隨機抽選單元
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 z-10 relative">
+        <div id="content" class="glass-panel py-10 px-6 sm:px-12 mb-8 hidden">
+            <!-- Title and dynamic verse injected here -->
+        </div>
+
+        <!-- Submit Controls (Hidden initially) -->
+        <div id="controls" class="flex flex-col items-center justify-center gap-4 hidden mb-12">
+            <button id="submitBtn" onclick="checkAnswers()" class="btn-submit px-10 py-2 rounded-full font-bold text-xl tracking-widest w-full sm:w-auto">
+                提 交
+            </button>
+            <div id="resultMessage" class="text-lg font-bold tracking-wide opacity-0 transition-opacity duration-300"></div>
+        </div>
+    </main>
+
+    <script>
+        // 道德經章節文本資料
+        const chaptersData = [
+            {
+                title: "第二章",
+                text: "天下皆知美之為美，斯惡已；皆知善之為善，斯不善已。故有無相生，難易相成，長短相形，高下相傾，音聲相和，前後相隨。是以聖人處無為之事，行不言之教；萬物作焉而不辭，生而不有，為而不恃，功成而弗居。"
+            },
+            {
+                title: "第三章",
+                text: "不尚賢，使民不爭；不貴難得之貨，使民不為盜；不見可欲，使民心不亂。是以聖人之治，虛其心，實其腹；弱其志，強其骨。常使民無知無欲。"
+            },
+            {
+                title: "第七章",
+                text: "天長地久。天地所以能長且久者，以其不自生，故能長生。是以聖人後其身而身先，外其身而身存。非以其無私邪？故能成其私。"
+            },
+            {
+                title: "第十章",
+                text: "載營魄抱一，能無離乎？專氣致柔，能如嬰兒乎？滌除玄覽，能無疵乎？愛民治國，能無為乎？天門開闔，能為雌乎？明白四達，能無知乎？生之畜之，生而不有，為而不恃，長而不宰，是謂玄德。"
+            },
+            {
+                title: "第十五章",
+                text: "古之善為士者，微妙玄通，深不可識。夫唯不可識，故強為之容：豫兮若冬涉川，猶兮若畏四鄰，儼兮其若客，渙兮若冰之將釋，敦兮其若樸，曠兮其若谷，混兮其若濁。孰能濁以靜之徐清？孰能安以動之徐生？保此道者，不欲盈。"
+            },
+            {
+                title: "第十六章",
+                text: "致虛極，守靜篤。萬物並作，吾以觀復。夫物芸芸，各復歸其根。歸根曰靜，是謂復命。復命曰常，知常曰明。不知常，妄作凶。知常容，容乃公，公乃王，王乃天，天乃道，道乃久，沒身不殆。"
+            }
+        ];
+
+        let currentChapterIndex = -1;
+
+        // 隨機抽取不重複的章節
+        function getRandomChapter() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * chaptersData.length);
+            } while (newIndex === currentChapterIndex && chaptersData.length > 1);
+            
+            currentChapterIndex = newIndex;
+            renderDynamicChapter(chaptersData[currentChapterIndex]);
+        }
+
+        // 動態生成挖空內容
+        function renderDynamicChapter(chapter) {
+            const container = document.getElementById('content');
+            const controls = document.getElementById('controls');
+            const submitBtn = document.getElementById('submitBtn');
+            const resultMsg = document.getElementById('resultMessage');
+
+            // Reset UI states
+            container.innerHTML = '';
+            container.classList.remove('hidden');
+            controls.classList.remove('hidden');
+            submitBtn.disabled = false;
+            resultMsg.classList.add('opacity-0');
+
+            // 建立標題
+            const titleHtml = `
+                <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-[#5c5042] border-b border-[#e2dcd0] pb-4 flex items-center justify-center">
+                    <span class="text-[#c7bcab] mr-4 text-xl">✤</span>
+                    ${chapter.title}
+                    <span class="text-[#c7bcab] ml-4 text-xl">✤</span>
+                </h2>
+            `;
+
+            // 【核心邏輯】解析文本並隨機挖空（字數 >= 2）
+            const text = chapter.text;
+            // 根據標點符號分割，保留標點符號本身。正則會將字串切成 [文字, 標點, 文字, 標點...]
+            const segments = text.split(/([，。；？！、「」：]+)/);
+            
+            let validIndices = [];
+            // 找出長度大於等於 2 的純文字片段（偶數索引為文字，奇數為標點）
+            for (let i = 0; i < segments.length; i += 2) {
+                if (segments[i] && segments[i].trim().length >= 2) {
+                    validIndices.push(i);
+                }
+            }
+
+            // 決定要挖幾個洞 (3 ~ 6 個)
+            let numBlanks = Math.floor(Math.random() * 4) + 3;
+            numBlanks = Math.min(numBlanks, validIndices.length);
+
+            // 隨機打亂 validIndices 並取出我們要挖空的段落索引
+            validIndices.sort(() => 0.5 - Math.random());
+            const selectedIndices = validIndices.slice(0, numBlanks);
+
+            let finalHtml = '';
+
+            for (let i = 0; i < segments.length; i++) {
+                if (selectedIndices.includes(i)) {
+                    const phrase = segments[i];
+                    
+                    // 隨機決定：挖空「整個句子」(0) 或 挖空「部分詞彙」(1)
+                    // 如果句子本身很短 (<=4) 則高機率全挖走
+                    const blankType = (phrase.length <= 4 || Math.random() > 0.6) ? 'whole' : 'partial';
+
+                    if (blankType === 'whole') {
+                        finalHtml += createInputHTML(phrase);
+                    } else {
+                        // 挖空句子中的部分連續字串 (長度 2 ~ 4，或句子長度 - 1)
+                        const maxLen = Math.min(4, phrase.length - 1);
+                        const blankLen = Math.floor(Math.random() * (maxLen - 2 + 1)) + 2; // 2 ~ maxLen
+                        const startPos = Math.floor(Math.random() * (phrase.length - blankLen + 1));
+                        
+                        const before = phrase.substring(0, startPos);
+                        const answer = phrase.substring(startPos, startPos + blankLen);
+                        const after = phrase.substring(startPos + blankLen);
+                        
+                        finalHtml += before + createInputHTML(answer) + after;
+                    }
+                } else {
+                    // 非選中段落或標點符號，直接輸出
+                    finalHtml += segments[i];
+                }
+            }
+
+            const verseHtml = `<p class="verse text-[#3e362e]">${finalHtml}</p>`;
+            container.innerHTML = titleHtml + verseHtml;
+
+            // 綁定 Enter 快捷鍵
+            const inputs = document.querySelectorAll('.blank-input');
+            inputs.forEach(input => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') checkAnswers();
+                });
+            });
+            
+            // Focus 第一個輸入框
+            if(inputs.length > 0) inputs[0].focus();
+        }
+
+        // 產生 Input 的 HTML 結構
+        function createInputHTML(answer) {
+            // 依據答案字數動態調整寬度 (em單位，適應字體大小)
+            const width = `calc(${answer.length} * 1.25em + 16px)`; 
+            return `
+                <span class="blank-container">
+                    <input type="text" class="blank-input" data-answer="${answer}" 
+                           style="width: ${width};" autocomplete="off" spellcheck="false" />
+                </span>`;
+        }
+
+        // 檢查答案並更新樣式
+        function checkAnswers() {
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn.disabled) return; // 避免重複提交
+
+            const inputs = document.querySelectorAll('.blank-input');
+            let correctCount = 0;
+            const totalBlanks = inputs.length;
+
+            inputs.forEach(input => {
+                const userAnswer = input.value.trim();
+                const correctAnswer = input.getAttribute('data-answer');
+                const container = input.parentElement;
+
+                // 移除舊的提示標籤(防呆)
+                const oldTag = container.querySelector('.correct-ans-tag');
+                if (oldTag) oldTag.remove();
+
+                if (userAnswer === correctAnswer) {
+                    input.classList.add('input-correct');
+                    correctCount++;
+                } else {
+                    input.classList.add('input-wrong');
+                    // 顯示正確答案標籤
+                    const tag = document.createElement('span');
+                    tag.className = 'correct-ans-tag';
+                    tag.textContent = `正確: ${correctAnswer}`;
+                    container.appendChild(tag);
+                }
+
+                // 提交後鎖定輸入
+                input.disabled = true;
+            });
+
+            // 鎖定提交按鈕
+            submitBtn.disabled = true;
+
+            // 顯示結果訊息
+            const resultMsg = document.getElementById('resultMessage');
+            if (correctCount === totalBlanks) {
+                resultMsg.textContent = "🎉 完美！全部答對，道法自然。";
+                resultMsg.className = "text-xl font-bold tracking-wide transition-opacity duration-300 text-green-700 opacity-100";
+            } else {
+                resultMsg.textContent = `完成！答對 ${correctCount} / ${totalBlanks} 題。請核對紅色錯誤處。`;
+                resultMsg.className = "text-xl font-bold tracking-wide transition-opacity duration-300 text-red-700 opacity-100";
+            }
+        }
+    </script>
+</body>
+</html>
